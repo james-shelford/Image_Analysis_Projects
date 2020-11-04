@@ -4,6 +4,7 @@ Some ImageJ scripts I have put together over the course of my PhD research to he
 
 ## Analyse particles
 This was initially written to quantify transferrin uptake in cells using images acquired by light microscopy. 
-The 
+`Analyse_particles.ijm` will generate a csv file containing
+Suggested data organisation:
 
 
