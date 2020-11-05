@@ -2,8 +2,15 @@
 # Script to process multiple .csv and .txt files containing output from ImageJ 'Analyse particles'
 # The output is a dataframe saved as .rds for combining with other experiments to further process
 
-# Blinded files were used for this analysis, they can be looked up using the log.txt file and a lookup table (lookup.csv)
-# Manually change the experiment number each time
+# Working directory should be 'Analyse_particles'
+# Setup preferred directory structure in wd
+ifelse(!dir.exists("Data"), dir.create("Data"), "Folder exists already")
+ifelse(!dir.exists("Output"), dir.create("Output"), "Folder exists already")
+ifelse(!dir.exists("Output/Dataframe"), dir.create("Output/Dataframe"), "Folder exists already")
+ifelse(!dir.exists("Output/Plots"), dir.create("Output/Plots"), "Folder exists already")
+ifelse(!dir.exists("Script"), dir.create("Script"), "Folder exists already")
+
+# lookup.csv and log.txt should be in 'Data' subdirectory
 
 # Load required packages
 require(ggplot2)
@@ -11,18 +18,15 @@ require(ggbeeswarm)
 library(dplyr)
 library(multcomp)
 
-# Select directory containing .csv and .txt files 
+# Record the experiment number for use later (useful when combining experiments)
+Experiment_number<- 'JS103'
+
+# Select directory containing .csv and .txt files
 datadir <- rstudioapi::selectDirectory()
 
 # search all .csv files in chosen directory
 my_files_csv <- list.files(datadir,pattern='*.csv',full.names = TRUE)
 my_files_names_csv <- list.files(datadir,pattern='*.csv')
-
-# make directory for output if it doesn't exist
-if (dir.exists("output")==FALSE) dir.create("output")
-
-# Record the experiment number (useful when combining experiments)
-Experiment_number<- 'JS103'
 
 # Make a matrix to store the data for each file in
 my_matrix <- matrix(0,length(my_files_csv),7)
@@ -54,11 +58,12 @@ colnames(df1) <- c('Slice',	'Count',	'Total Area',	'Average Size',	'%Area',	'Mea
 my_files_txt <- list.files(datadir,pattern='*.txt',full.names = TRUE, recursive = TRUE)
 my_files_names_txt <- list.files(datadir,pattern='*.txt', recursive = TRUE)
 
+# Create a vector to store the thresholds in
 thresholds <- vector(mode = "numeric", length = length(my_files_txt))
 
 # function to get line of interest and extract the number
 get_threshold <- function(my_filename){
-  # import data
+  # 
   myFile <- readLines(my_filename)
   # get the line with the value we want (as string)
   myLine <- grep(pattern = "your thresholds", x = myFile, value = TRUE)
@@ -86,10 +91,8 @@ df1$Experiment <- Experiment_number
 blind_list <- gsub(".csv","", my_files_names_csv)
 df1$blind_list <- blind_list
 
-# Select the directory containing the log.txt file and load it
-logdir <- rstudioapi::selectDirectory()
-logfile_path <- paste0(logdir,"/log.txt")
-blind_log <- read.table(logfile_path, header = TRUE)
+# Load the log.txt file
+blind_log <- read.table('Data/log.txt', header = TRUE)
 
 # function to find partial strings in a column and classify them
 add_categories = function(x, patterns, replacements = patterns, fill = NA, ...) {
@@ -104,10 +107,8 @@ add_categories = function(x, patterns, replacements = patterns, fill = NA, ...) 
   return(ans)
 }
 
-# Select directory containing the lookup and load it
-lookupdir <- rstudioapi::selectDirectory()
-lookup_path <- paste0(lookupdir, '/lookup.csv')
-look_up_table <- read.table(lookup_path, header = TRUE, stringsAsFactors = F, sep = ",")
+# Load the lookup.csv
+look_up_table <- read.table('Data/lookup.csv', header = TRUE, stringsAsFactors = F, sep = ",")
 
 # add a new column to dataframe where categories are defined by searching original name for partial strings
 blind_log$Category <- add_categories(blind_log$Original_Name,
@@ -126,20 +127,18 @@ df1$Category <- factor(df1$Category, levels = look_up_table$Search_category )
 # How many cells per category?
 summary(df1$Category)
 
-
 # Convert 'count' to numeric values so we can plot them
 df1$Count <- as.numeric(as.character(df1$Count))
 
 # Generate the plot 
-puncta_plot <- ggplot(data = df1, aes(x=Category, y=Count, color='00A651')) +
+puncta_plot <- ggplot(data = df1, aes(x=Category, y=Count, color=Category)) +
   geom_quasirandom(alpha=0.5, stroke=0) + 
-  stat_summary(fun.data = mean_se, geom = 'point', size=2)+
-  stat_summary(fun.data = mean_sdl, fun.args = list(mult=1), geom = 'errorbar', size=0.8, width=0) +
-  scale_colour_manual(values = "#00A651") +
+  stat_summary(fun.data = mean_se, geom = 'point', size=2, aes(group=Category))+
+  stat_summary(fun.data = mean_sdl, fun.args = list(mult=1), geom = 'errorbar', size=0.8, aes(group=Category), width=0) +
   theme(axis.text.x = element_text(face= "plain", color= 'black', size=9, angle = 0, hjust = 0.5)) +
   theme(axis.title.y = element_text(size = 9,face='plain',color='black'), axis.text.y = element_text(size=8, face='plain',color='black')) +
   labs(y = "Transferrin uptake (puncta)", x = NULL) + 
-  theme(legend.position = 'none') +
+  theme(legend.position = 'top') +
   theme(legend.title = element_blank()) +
   ylim(0,4000)
   
@@ -161,9 +160,9 @@ puncta_Tukey
 # save the plot
 # when importing the plot into illustrator save as pdf 
 
-ggsave("./output/puncta_Plot.png", plot = puncta_plot, dpi = 300)
-ggsave("./output/puncta_Plot.pdf", plot = puncta_plot, width = 100, height = 100, units = 'mm', useDingbats = FALSE)
+ggsave("./Output/Plots/puncta_Plot.png", plot = puncta_plot, dpi = 300)
+ggsave("./Output/Plots/puncta_Plot.pdf", plot = puncta_plot, width = 100, height = 100, units = 'mm', useDingbats = FALSE)
 
 # save the dateframe so it can be combined with other experiments in a new script
-file_name<- paste0(Experiment_number, "_dataframe")
+file_name<- paste0("Output/Dataframe/", Experiment_number, "_dataframe.rds")
 saveRDS(df1, file = file_name)
