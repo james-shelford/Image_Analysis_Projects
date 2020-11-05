@@ -5,7 +5,9 @@ Some ImageJ scripts I have put together over the course of my PhD research to he
 Blind analysis is used. Lookup table is used. 
 
 ## Analyse particles
-This was initially written to quantify transferrin uptake in cells using images acquired by light microscopy. 
+This was initially written to quantify transferrin uptake in cells using images acquired by light microscopy (see below).  
+
+![typical image](Analyse_particles/Transferrin_example.png)  
 
 `Analyse_particles.ijm` will _threshold_ the transferrin to isolate vesciular structures and use _analyse particles_ to create a mask of the particles based on parameters set by the user. The output is a csv file containing the results from _analyse particles_ and a txt file containing the values of the _threshold_ limits used for the analysis.
 `Analyse_particles.R` will process the data (output from ImageJ) to generate a dataframe, plots and calculate statistics. The dataframe and plots are saved to output.
