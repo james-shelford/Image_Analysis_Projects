@@ -2,7 +2,7 @@
 ## Overview
 A collection of ImageJ scripts I have put together over the course of my PhD research to help with image analysis. For each one there is an accompanying R script to process and plot the data generated from ImageJ. I have tried to generalise the scripts in the hope they could be useful for other projects. 
 
-[+TIP](##+TIP)
+[Analyse Particles](#analyse-particles)
 
 ### Data organisation
 * A similar directory structure is used for all projects. The parent directory is given the name of the project and contains the subdirectories; `Data`, where the output from ImageJ is located; `Output`, where the dataframes and plots are saved; and `Scripts`, where the ImageJ and R code are located. 
