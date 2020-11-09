@@ -2,7 +2,7 @@
 ## Overview
 A collection of ImageJ scripts I have put together over the course of my PhD research to help with image analysis. For each one there is an accompanying R script to process and plot the data generated from ImageJ. I have tried to generalise the scripts in the hope they could be useful for other projects. 
 
-[Analyse Particles](#analyse-particles) | [3D object counter](#3d-object-counter) | [+TIP](+tip)
+[Analyse Particles](#analyse-particles) | [3D object counter](#3d-object-counter) | [Microtubule plus-end tracking](#microtubule-plus-end-tracking)
 
 ### Data organisation
 * A similar directory structure is used for all projects. The parent directory is named according to the project (i.e. `Analyse particles`) and contains the subdirectories; `Data`, where the output from ImageJ is located; `Output`, where the dataframes and plots are saved; and `Scripts`, where the ImageJ and R code are located. 
@@ -24,7 +24,7 @@ This was initially written to quantify transferrin uptake in cells using images 
 
 ## 3D object counter
 
-## +TIP
+## Microtubule plus-end tracking
 This was written to process and plot output from *u-track*, a multiple-particle tracking MATLAB software developed by the [Danuser Lab](https://github.com/DanuserLab/u-track). I used this software to detect and track fluorescently-labelled EB3 (a microtubule plus-end tracking protein, (+TIP)) in  movies taken from live-cell imaging experiments, to measure microtubule growth parameters under different conditions.
 
 | ![+TIP image](Example_images/+TIP.png)
