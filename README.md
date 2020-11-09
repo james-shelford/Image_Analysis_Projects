@@ -27,6 +27,10 @@ This was initially written to quantify transferrin uptake in cells using images 
 ## +TIP
 This was written to process and plot output from *u-track*, a multiple-particle tracking MATLAB software developed by the [Danuser Lab](https://github.com/DanuserLab/u-track). I used this software to detect and track fluorescently-labelled EB3 (a microtubule plus-end tracking protein, (+TIP)) in  movies taken from live-cell imaging experiments, to measure microtubule growth parameters under different conditions.
 
+| ![+TIP image](Example_images/+TIP.png)
+|:--:|
+| *Still image of growing microtubles in a cell expressing fluorescently-labelled EB3* |
+
 
 ## Spindle recruitment
 
