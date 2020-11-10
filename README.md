@@ -5,16 +5,16 @@ A collection of ImageJ scripts I have put together over the course of my PhD res
 [Analyse Particles](#analyse-particles) | [3D object counter](#3d-object-counter) | [Microtubule plus-end tracking](#microtubule-plus-end-tracking)
 
 ### Data organisation
-* A similar directory structure is used for all projects. The parent directory is named according to the project (i.e. `Analyse particles`) and contains the subdirectories; `Data`, where the output from ImageJ is located; `Output`, where the dataframes and plots are saved; and `Scripts`, where the ImageJ and R code are located. 
-* Within `Data` there are subdirectories containing the ImageJ output from separate experiements, each labelled with their unique experiment number (e.g. JS001). Where there are multiple experiments, a script to combine dataframes from the individual experiments is used.
-* Where log.txt is used, analysis was performed blind to the conditions of the experiment and a Lookup.csv is loaded in R to add the original label. 
+* A similar directory structure is used for all projects. The parent directory is named according to the project (i.e. `Analyse particles`) and contains the subdirectories; `Data`, where the output from ImageJ, the `lookup.csv` and `log.txt` are located; `Output`, where the dataframes and plots are saved; and `Scripts`, where the ImageJ and R code are located. 
+* Within `Data` there are subdirectories containing the ImageJ output from separate experiements, each labelled with their unique experiment number (e.g. JS001). Where there are multiple experiments, a `Project_name_combined.R` script is used to combine the dataframes from individual experiments, calculate statistics and plot the data.
+* Where `log.txt` is used, analysis was performed blind to the conditions of the experiment and a `lookup.csv` is loaded in R to add the original label. 
 
 ## Analyse particles
 This was initially written to quantify transferrin uptake in cells using images acquired by light microscopy.  
 
 | ![Transferrin image](Example_images/Transferrin_example.png) 
 |:--:|
-| *Typical micrograph used to quantify tranferrin uptake (the spots)* |
+| *Typical image used to quantify tranferrin uptake (the spots)* |
 
 ### Running the code
 
@@ -25,11 +25,14 @@ This was initially written to quantify transferrin uptake in cells using images 
 ## 3D object counter
 
 ## Microtubule plus-end tracking
-This was written to process and plot output from *u-track*, a multiple-particle tracking MATLAB software developed by the [Danuser Lab](https://github.com/DanuserLab/u-track). I used this software to detect and track fluorescently-labelled EB3 (a microtubule plus-end tracking protein, (+TIP)) in  movies taken from live-cell imaging experiments, to measure microtubule growth parameters under different conditions.
+I wrote an R script to process and plot output from *u-track*, a multiple-particle tracking MATLAB software developed by the [Danuser Lab](https://github.com/DanuserLab/u-track). I used this software to detect and track fluorescently-labelled EB3 (a microtubule plus-end tracking protein, (+TIP)) in  movies taken from live-cell imaging experiments, to measure microtubule growth parameters under different conditions.
 
 | ![+TIP image](Example_images/+TIP.png)
 |:--:|
 | *Still image of growing microtubles in a cell expressing fluorescently-labelled EB3* |
+
+### Running the code
+
 
 
 ## Spindle recruitment
