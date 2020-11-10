@@ -32,8 +32,11 @@ I wrote an R script to process and plot output from *u-track*, a multiple-partic
 | *Still image of growing microtubles in a cell expressing fluorescently-labelled EB3* |
 
 ### Running the code
+* `Microtubule_tracking.R` will process the `Data` (output from *u-track*) for each experiment and generate a dataframe that is saved to `Output/Dataframe`. 
+* `Microtubule_tracking_combined.R` will combine the dataframes, calculate statistics and generate plots. Plots are saved to `Output/Plots`.
 
-
+### Notes
+* The organisation of `Data` is slightly different to the other projects in that there are many subdirectories and the analysis was not performed 'blind'. This is because the analysis was performed using the MATLAB based software *u-track*, which is an automated particle tracking software. The output from *u-track* includes .mat files in addition to the .txt file used here for processing. The .mat files were removed from the `Data` directory here for simplicity. 
 
 ## Spindle recruitment
 
