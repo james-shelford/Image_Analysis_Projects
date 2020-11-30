@@ -3,6 +3,7 @@
 # The output is a dataframe saved as .rds for combining with other experiments to further process
 
 # Working directory should be 'Analyse_particles'
+# lookup.csv and log.txt should be in 'Data' subdirectory
 # Setup preferred directory structure in wd
 ifelse(!dir.exists("Data"), dir.create("Data"), "Folder exists already")
 ifelse(!dir.exists("Output"), dir.create("Output"), "Folder exists already")
@@ -10,26 +11,27 @@ ifelse(!dir.exists("Output/Dataframe"), dir.create("Output/Dataframe"), "Folder 
 ifelse(!dir.exists("Output/Plots"), dir.create("Output/Plots"), "Folder exists already")
 ifelse(!dir.exists("Scripts"), dir.create("Scripts"), "Folder exists already")
 
-# lookup.csv and log.txt should be in 'Data' subdirectory
-
 # Load required packages
 require(ggplot2)
 require(ggbeeswarm)
 library(dplyr)
 library(multcomp)
+library(cowplot)
+library(ggpubr)
+library(rstatix)
 
 # Select directory containing .csv and .txt files
 datadir <- rstudioapi::selectDirectory()
 
-# Record the experiment number for use later (useful when combining experiments)
-Experiment_number<- 'JS103'
+# Extract the experiment number for use later (useful when combining experiments)
+Experiment_number<- basename(datadir)
 
 # search all .csv files in chosen directory
 my_files_csv <- list.files(datadir,pattern='*.csv',full.names = TRUE)
 my_files_names_csv <- list.files(datadir,pattern='*.csv')
 
 # Make a matrix to store the data for each file in
-my_matrix <- matrix(0,length(my_files_csv),7)
+my_matrix <- matrix(0, length(my_files_csv), 7)
 
 # function definition
 build_matrix <- function(my_matrix,my_filename,row_number){
@@ -129,39 +131,53 @@ summary(df1$Category)
 # Convert 'count' to numeric values so we can plot them
 df1$Count <- as.numeric(as.character(df1$Count))
 
-# Generate the plot 
-puncta_plot <- ggplot(data = df1, aes(x=Category, y=Count, color=Category)) +
-  geom_quasirandom(alpha=0.5, stroke=0) + 
-  stat_summary(fun.data = mean_se, geom = 'point', size=2, aes(group=Category))+
-  stat_summary(fun.data = mean_sdl, fun.args = list(mult=1), geom = 'errorbar', size=0.8, aes(group=Category), width=0) +
-  theme(axis.text.x = element_text(face= "plain", color= 'black', size=9, angle = 0, hjust = 0.5)) +
-  theme(axis.title.y = element_text(size = 9,face='plain',color='black'), axis.text.y = element_text(size=8, face='plain',color='black')) +
-  labs(y = "Transferrin uptake (puncta)", x = NULL) + 
-  theme(legend.position = 'top') +
-  theme(legend.title = element_blank()) +
-  ylim(0,4000)
-  
-puncta_plot
-
-# Statistics 
-
-# ANOVA
-puncta_ANOVA <- aov(Count ~ Category, df1)
-summary(puncta_ANOVA)
-plot(puncta_ANOVA,1)
-plot(puncta_ANOVA,2)
-
-#Post-hoc test
-summary(glht(puncta_ANOVA, linfct = mcp(Category='Tukey')))
-puncta_Tukey <- TukeyHSD(puncta_ANOVA)
-puncta_Tukey
-
-# save the plot
-# when importing the plot into illustrator save as pdf 
-
-ggsave("./Output/Plots/puncta_Plot.png", plot = puncta_plot, dpi = 300)
-ggsave("./Output/Plots/puncta_Plot.pdf", plot = puncta_plot, width = 100, height = 100, units = 'mm', useDingbats = FALSE)
-
 # save the dateframe so it can be combined with other experiments in a new script
 file_name<- paste0("Output/Dataframe/", Experiment_number, "_dataframe.rds")
 saveRDS(df1, file = file_name)
+
+# Generate the plot 
+# theme_cowplot() removes the grid. Comment this out for classic ggplot appearance.
+puncta_plot <- ggplot(data = df1, aes(x=Category, y=Count, color=Category)) +
+  theme_cowplot() +
+  geom_quasirandom(alpha=0.5, stroke=0) + 
+  stat_summary(fun.data = mean_sdl, fun.args = list(mult=1), aes(group=Category)) +
+  theme(axis.text.x = element_text(face= "plain", color= 'black', size=9, angle = 45, hjust = 0.5, vjust = 0.6)) +
+  theme(axis.title.y = element_text(size = 10,face='plain',color='black'), axis.text.y = element_text(size=9, face='plain',color='black')) +
+  labs(y = "Transferrin uptake (puncta)", x = NULL) + 
+  theme(legend.position = 'none') +
+  theme(legend.title = element_blank()) +
+  ylim(0, 4000)
+puncta_plot
+
+# save the plot
+# when importing the plot into illustrator save as pdf 
+ggsave("./Output/Plots/puncta_Plot.png", plot = puncta_plot, dpi = 300)
+ggsave("./Output/Plots/puncta_Plot.pdf", plot = puncta_plot, width = 100, height = 100, units = 'mm', useDingbats = FALSE)
+
+#---------------------------------- Statistics ----------------------------------
+
+# Visualise distribution of data
+# Density plot
+ggdensity(df1$Count, fill = 'lightgray')
+# QQ plot
+ggqqplot(df1$Count)
+
+# Use significance test to check normality
+# Use the rstatix package which is pipe-friendly. Null hypothesis is norm dist.
+df1 %>% group_by(Category) %>% shapiro_test(Count)
+
+# Check for homogeneity of variance across the Categories using levene test, uses rstatix package and is pipe-friendly. Null is equal variances
+df1 %>% levene_test(Count ~ Category)
+
+# Kruskal-Wallis rank sum test
+res_Kruskal <- df1 %>% kruskal_test(Count ~ Category)
+
+# Post-hoc pairwise comparisons
+res_Dunn <- df1 %>% dunn_test(Count ~ Category, p.adjust.method = 'bonferroni')
+
+# Adding p-values to the plot
+res_Dunn <- res_Dunn %>% add_xy_position(x= 'Category')
+stats_plot <- puncta_plot + stat_pvalue_manual(res_Dunn, hide.ns = TRUE) + ylim(0,6000)
+stats_plot
+
+ggsave("./Output/Plots/stats_puncta_Plot.png", plot = stats_plot, dpi = 300)

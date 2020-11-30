@@ -1,0 +1,1 @@
+C2-HeLa_Condition_2_pericentrin568_tubulin647_093-4.tif: 3 objects detected (Size filter set to 50-898008 voxels, threshold set to: 600).

@@ -3,6 +3,7 @@
 # The output is a dataframe saved as .rds for combining with other experiments to further process
 
 # Working directory should be 'Microtubule_tracking'
+# Lookup.csv should be in the 'Data' subdirectory
 # Setup preferred directory structure in wd
 ifelse(!dir.exists("Data"), dir.create("Data"), "Folder exists already")
 ifelse(!dir.exists("Output"), dir.create("Output"), "Folder exists already")
@@ -10,17 +11,11 @@ ifelse(!dir.exists("Output/Dataframe"), dir.create("Output/Dataframe"), "Folder 
 ifelse(!dir.exists("Output/Plots"), dir.create("Output/Plots"), "Folder exists already")
 ifelse(!dir.exists("Scripts"), dir.create("Scripts"), "Folder exists already")
 
-# Load required packages
-require(ggplot2)
-require(ggbeeswarm)
-library(dplyr)
-library(multcomp)
-
 # Select directory containing the .txt files
 datadir <- rstudioapi::selectDirectory()
 
-# Record the experiment number for use later (useful when combining experiments)
-Experiment_number<- 'JS068'
+# Extract the experiment number for use later (useful when combining experiments)
+Experiment_number<- basename(datadir)
 
 # Search all .txt files in the chosen directory
 my_files <- list.files(datadir, pattern='*stats.txt', full.names = TRUE, recursive = TRUE)
@@ -29,60 +24,41 @@ my_files_names <- list.files(datadir, pattern='*stats.txt', recursive = TRUE)
 # Cleaning the file names for use later
 my_files_names <- gsub("/TrackingPackage/mtTracks/","_", my_files_names)
 
-# Creating vectors to store data in
-my_num_growths <- vector(mode = "numeric", length = length(my_files))
-my_growth_speed <- vector(mode = "numeric", length = length(my_files))
-my_growth_lifetime <- vector(mode = "numeric", length = length(my_files))
-my_growth_length <- vector(mode = "numeric", length = length(my_files))
+# Make a dataframe to store the extracted data
+headings <- c('growth_speed', 'number_of_growths', 'growth_lifetime', 'growth_length', 'Name_of_file')
+df1 <- matrix(0, length(my_files), length(headings))
+df1 <- as.data.frame(df1)
+colnames(df1) <- headings
 
-# function to get line of interest and extract the data
-get_growth_speed <- function(my_filename){
-  # import data
-  myFile <- readLines(my_filename)
-  # get the line with the value we want (as string)
-  myLine <- grep(pattern = "growth_speed_mean", x = myFile, value = TRUE)
-  
-  # get rid of text we don't want and convert to numeric
-  myValue <- as.numeric(gsub("growth_speed_mean","", myLine))
-  return(myValue)
-}
+# Function to extract the data from each txt file and add it to the appropriate place in the df
 
-get_num_growths <- function(my_filename){
-  
-  myFile <- readLines(my_filename)
-  myLine <- grep(pattern = "nGrowths", x = myFile, value = TRUE)
-  myValue <- as.numeric(gsub("nGrowths","", myLine))
-  return(myValue)
-}
-
-get_growth_lifetime <- function(my_filename){
+extract_data <- function(dataframe, file_name, row_num){
+  my_file <- readLines(file_name)
+  speed_line <- grep(pattern = "growth_speed_mean_", x = my_file, value = TRUE, fixed = TRUE)
+  growth_num_line <- grep(pattern = "nGrowths", x = my_file, value = TRUE, fixed = TRUE)
+  growth_lifetime_line <- grep(pattern = "growth_lifetime_mean_", x = my_file, value = TRUE, fixed = TRUE)
+  growth_length_line <- grep(pattern = "growth_length_mean", x = my_file, value = TRUE, fixed = TRUE)
+ dataframe$growth_speed[row_num] <- gsub("growth_speed_mean_IncludeAllPause","", speed_line)
+ dataframe$number_of_growths[row_num] <- gsub("nGrowths","", growth_num_line)
+ dataframe$growth_lifetime[row_num] <- gsub("growth_lifetime_mean_IncludeAllPause","", growth_lifetime_line)
+ dataframe$growth_length[row_num] <- gsub("growth_length_mean","", growth_length_line)
+ dataframe$Name_of_file [row_num] <- my_files_names[row_num]
  
-   myFile <- readLines(my_filename)
-  myLine <- grep(pattern = "growth_lifetime_mean", x = myFile, value = TRUE)
-  myValue <- as.numeric(gsub("growth_lifetime_mean","", myLine))
-  return(myValue)
+ return(dataframe)
 }
 
-get_growth_length <- function(my_filename){
+# Call the function for each file
 
-  myFile <- readLines(my_filename)
-  myLine <- grep(pattern = "growth_length_mean", x = myFile, value = TRUE)
-  myValue <- as.numeric(gsub("growth_length_mean","", myLine))
-  return(myValue)
+for (i in 1:length(my_files)){
+  file_name <- my_files[i]
+  df1 <- extract_data(df1, file_name, i)
 }
 
-# call the function for each file in the list and fill in vector with extracted number
-for(i in 1:length(my_files)){
-  
-  my_filename <- my_files[i]
-  my_num_growths[i] <- get_num_growths(my_filename)
-  my_growth_speed[i] <- get_growth_speed(my_filename)
-  my_growth_lifetime[i] <- get_growth_lifetime(my_filename)
-  my_growth_length[i] <- get_growth_length(my_filename)
-}
-
-# create a dataframe combining the filename and data 
-df1<- cbind.data.frame(my_files_names, my_num_growths, my_growth_speed, my_growth_lifetime, my_growth_length)
+# Convert character to numeric
+df1$growth_length <- as.numeric(df1$growth_length)
+df1$growth_speed <- as.numeric(df1$growth_speed)
+df1$number_of_growths <- as.numeric(df1$number_of_growths)
+df1$growth_lifetime <- as.numeric(df1$growth_lifetime)
 
 # Add experiment number to the dataframe
 df1$Experiment <- Experiment_number
@@ -104,7 +80,7 @@ add_categories = function(x, patterns, replacements = patterns, fill = NA, ...) 
 }
 
 # add a new column to dataframe where categories are defined by searching original name for partial strings
-df1$Category <- add_categories(df1$my_files_names,
+df1$Category <- add_categories(df1$Name_of_file,
                                      look_up_table$Search_name,
                                      look_up_table$Search_category,
                                      "NA", ignore.case = TRUE)
