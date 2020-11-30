@@ -1,6 +1,6 @@
 # ImageJ scripts and R code
 ## Overview
-A collection of ImageJ scripts I have put together over the course of my PhD research project to help with image analysis. For each one there is an accompanying R script to process and plot the data generated from ImageJ. I have tried to generalise the scripts in the hope they could be useful for other projects. 
+A collection of R scripts I have put together over the course of my PhD research project to process and plot data generated from image analysis performed in ImageJ. For each project, example data and outputs are provided. I have tried to generalise the scripts in the hope they could be useful for other projects. 
 
 [Analyse Particles](#analyse-particles) | [3D object counter](#3d-object-counter) | [Microtubule plus-end tracking](#microtubule-plus-end-tracking)
 
